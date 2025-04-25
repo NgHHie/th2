@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Mã dự án:"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvDialogProjectId"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textStyle="bold"
+            android:layout_marginStart="8dp"
+            android:text="01" />
+    </LinearLayout>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Tên dự án:"
+        android:layout_marginTop="16dp" />
+
+    <EditText
+        android:id="@+id/edtDialogProjectName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Nhập tên dự án" />
+
+    <TextView
+        android:id="@+id/tvErrorProjectName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="#F44336"
+        android:visibility="gone"
+        android:text="Vui lòng nhập tên dự án" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Ngày bắt đầu:"
+        android:layout_marginTop="16dp" />
+
+    <TextView
+        android:id="@+id/tvDialogStartDate"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@android:drawable/editbox_background"
+        android:padding="12dp"
+        android:text="01/01/2025" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Ngày dự kiến hoàn thành:"
+        android:layout_marginTop="16dp" />
+
+    <TextView
+        android:id="@+id/tvDialogEndDate"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@android:drawable/editbox_background"
+        android:padding="12dp"
+        android:text="01/01/2025" />
+
+    <TextView
+        android:id="@+id/tvErrorDates"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="#F44336"
+        android:visibility="gone"
+        android:text="Ngày bắt đầu phải trước ngày kết thúc" />
+
+    <CheckBox
+        android:id="@+id/cbDialogCompleted"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Hoàn thành"
+        android:layout_marginTop="16dp" />
+
+</LinearLayout>
