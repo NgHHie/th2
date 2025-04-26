@@ -12,10 +12,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
-import android.widget.RadioButton;
-import android.widget.RadioGroup;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.example.th2.model.ProjectAdapter;
 import com.example.th2.model.Project;
@@ -27,295 +24,281 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
-import java.util.Random;
 
-public class MainActivity2 extends AppCompatActivity implements ProjectAdapter.ProjectItemListener {
-    private TextView tvFilterStartDate, tvFilterEndDate;
-    private CheckBox cbFilterCompleted;
-    private Button btnFilter, btnShowAll, btnAddNew;
-    private RecyclerView rvProjects;
+public class MainActivity2 extends AppCompatActivity implements ProjectAdapter.ItemListener {
+    private TextView txtFromDate, txtToDate;
+    private CheckBox cbDone;
+    private Button btnFilter, btnAll, btnAdd;
+    private RecyclerView rvList;
 
     private ProjectAdapter adapter;
     private SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
-    private TextView tvErrorStartDate, tvErrorEndDate, tvErrorDateRange;
-    private static int lastProjectId = 0; // Starting ID (will be incremented)
+    private TextView txtErrStart, txtErrEnd, txtErrRange;
+    private static int lastId = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main2);
 
-        initViews();
-        initRecyclerView();
-        initListeners();
+        init();
+        initRv();
+        initListener();
     }
 
-    private void initViews() {
-        tvFilterStartDate = findViewById(R.id.tvFilterStartDate);
-        tvFilterEndDate = findViewById(R.id.tvFilterEndDate);
-        cbFilterCompleted = findViewById(R.id.cbFilterCompleted);
+    private void init() {
+        txtFromDate = findViewById(R.id.txtFromDate);
+        txtToDate = findViewById(R.id.txtToDate);
+        cbDone = findViewById(R.id.cbDone);
         btnFilter = findViewById(R.id.btnFilter);
-        btnShowAll = findViewById(R.id.btnShowAll);
-        btnAddNew = findViewById(R.id.btnAddNew);
-        rvProjects = findViewById(R.id.rvProjects);
+        btnAll = findViewById(R.id.btnAll);
+        btnAdd = findViewById(R.id.btnAdd);
+        rvList = findViewById(R.id.rvList);
 
-        tvErrorStartDate = findViewById(R.id.tvErrorStartDate);
-        tvErrorEndDate = findViewById(R.id.tvErrorEndDate);
-        tvErrorDateRange = findViewById(R.id.tvErrorDateRange);
+        txtErrStart = findViewById(R.id.txtErrStart);
+        txtErrEnd = findViewById(R.id.txtErrEnd);
+        txtErrRange = findViewById(R.id.txtErrRange);
     }
 
-    private void initRecyclerView() {
+    private void initRv() {
         adapter = new ProjectAdapter(this);
-        adapter.setItemListener(this);
+        adapter.setListener(this);
 
         LinearLayoutManager manager = new LinearLayoutManager(this, RecyclerView.VERTICAL, false);
-        rvProjects.setLayoutManager(manager);
-        rvProjects.setAdapter(adapter);
+        rvList.setLayoutManager(manager);
+        rvList.setAdapter(adapter);
 
-        // Add some sample data
-        adapter.setProjects(generateSampleProjects());
+        // Add sample data
+        adapter.setList(getSampleData());
     }
 
-    private void initListeners() {
-        // Date picker dialogs
-        tvFilterStartDate.setOnClickListener(v -> showDatePickerDialog(tvFilterStartDate));
-        tvFilterEndDate.setOnClickListener(v -> showDatePickerDialog(tvFilterEndDate));
+    private void initListener() {
+        txtFromDate.setOnClickListener(v -> showDatePicker(txtFromDate));
+        txtToDate.setOnClickListener(v -> showDatePicker(txtToDate));
 
-        // Filter button
         btnFilter.setOnClickListener(v -> {
-            boolean isValid = true;
+            boolean valid = true;
 
-            // Ẩn tất cả thông báo lỗi trước khi kiểm tra
-            tvErrorStartDate.setVisibility(View.GONE);
-            tvErrorEndDate.setVisibility(View.GONE);
-            tvErrorDateRange.setVisibility(View.GONE);
+            txtErrStart.setVisibility(View.GONE);
+            txtErrEnd.setVisibility(View.GONE);
+            txtErrRange.setVisibility(View.GONE);
 
-            // Kiểm tra ngày bắt đầu
-            String startDateStr = tvFilterStartDate.getText().toString();
-            if (startDateStr == null || startDateStr.isEmpty()) {
-                tvErrorStartDate.setVisibility(View.VISIBLE);
-                isValid = false;
+            String startStr = txtFromDate.getText().toString();
+            if (startStr.isEmpty()) {
+                txtErrStart.setVisibility(View.VISIBLE);
+                valid = false;
             }
 
-            // Kiểm tra ngày kết thúc
-            String endDateStr = tvFilterEndDate.getText().toString();
-            if (endDateStr == null || endDateStr.isEmpty()) {
-                tvErrorEndDate.setVisibility(View.VISIBLE);
-                isValid = false;
+            String endStr = txtToDate.getText().toString();
+            if (endStr.isEmpty()) {
+                txtErrEnd.setVisibility(View.VISIBLE);
+                valid = false;
             }
 
-            if (!isValid) {
-                return; // Nếu không hợp lệ thì kết thúc xử lý
+            if (!valid) {
+                return;
             }
 
             try {
-                Date startDate = sdf.parse(startDateStr);
-                Date endDate = sdf.parse(endDateStr);
+                Date start = sdf.parse(startStr);
+                Date end = sdf.parse(endStr);
 
-                // Kiểm tra ngày bắt đầu < ngày kết thúc
-                if (startDate.after(endDate)) {
-                    tvErrorDateRange.setVisibility(View.VISIBLE);
+                if (start.after(end)) {
+                    txtErrRange.setVisibility(View.VISIBLE);
                     return;
                 }
 
-                // Trạng thái hoàn thành
-                Boolean isCompleted = cbFilterCompleted.isChecked() ? true : false;
+                Boolean done = cbDone.isChecked() ? true : null;
+                adapter.filter(start, end, done);
 
-                // Thực hiện lọc dự án
-                adapter.filterProjects(startDate, endDate, isCompleted);
             } catch (ParseException e) {
                 e.printStackTrace();
             }
         });
 
-        // Show all button
-        btnShowAll.setOnClickListener(v -> {
-            tvErrorStartDate.setVisibility(View.GONE);
-            tvErrorEndDate.setVisibility(View.GONE);
-            tvErrorDateRange.setVisibility(View.GONE);
-            cbFilterCompleted.setChecked(false);
-            tvFilterStartDate.setText(null);
-            tvFilterEndDate.setText(null);
-            adapter.filterProjects(null, null, null);
+        btnAll.setOnClickListener(v -> {
+            txtErrStart.setVisibility(View.GONE);
+            txtErrEnd.setVisibility(View.GONE);
+            txtErrRange.setVisibility(View.GONE);
+            cbDone.setChecked(false);
+            txtFromDate.setText(null);
+            txtToDate.setText(null);
+            adapter.filter(null, null, null);
         });
 
-        // Add new button
-        btnAddNew.setOnClickListener(v -> showProjectDialog(null, -1));
+        btnAdd.setOnClickListener(v -> showDialog(null, -1));
     }
 
-    private void showDatePickerDialog(TextView targetTextView) {
-        Calendar calendar = Calendar.getInstance();
+    private void showDatePicker(TextView tv) {
+        Calendar cal = Calendar.getInstance();
         try {
-            Date date = sdf.parse(targetTextView.getText().toString());
-            calendar.setTime(date);
+            Date date = sdf.parse(tv.getText().toString());
+            cal.setTime(date);
         } catch (ParseException e) {
             e.printStackTrace();
         }
 
-        int year = calendar.get(Calendar.YEAR);
-        int month = calendar.get(Calendar.MONTH);
-        int day = calendar.get(Calendar.DAY_OF_MONTH);
+        int year = cal.get(Calendar.YEAR);
+        int month = cal.get(Calendar.MONTH);
+        int day = cal.get(Calendar.DAY_OF_MONTH);
 
-        DatePickerDialog datePickerDialog = new DatePickerDialog(
+        DatePickerDialog dpd = new DatePickerDialog(
                 this,
-                (view, selectedYear, selectedMonth, selectedDay) -> {
-                    Calendar selectedCalendar = Calendar.getInstance();
-                    selectedCalendar.set(selectedYear, selectedMonth, selectedDay);
-                    String selectedDate = sdf.format(selectedCalendar.getTime());
-                    targetTextView.setText(selectedDate);
+                (view, y, m, d) -> {
+                    Calendar selectedCal = Calendar.getInstance();
+                    selectedCal.set(y, m, d);
+                    String selectedDate = sdf.format(selectedCal.getTime());
+                    tv.setText(selectedDate);
                 },
                 year, month, day);
 
-        datePickerDialog.show();
+        dpd.show();
     }
 
-    private void showProjectDialog(Project project, int position) {
+    private void showDialog(Project p, int pos) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
 
-        // Set dialog title based on action (add or update)
-        String title = project == null ? "Thêm dự án mới" : "Cập nhật dự án";
+        // Set dialog title
+        String title = p == null ? "Thêm dự án mới" : "Cập nhật dự án";
         builder.setTitle(title);
 
         // Inflate dialog layout
         View view = LayoutInflater.from(this).inflate(R.layout.dialog_project_form, null);
         builder.setView(view);
 
-        // Find views in dialog
-        TextView tvDialogProjectId = view.findViewById(R.id.tvDialogProjectId);
-        EditText edtDialogProjectName = view.findViewById(R.id.edtDialogProjectName);
-        TextView tvDialogStartDate = view.findViewById(R.id.tvDialogStartDate);
-        TextView tvDialogEndDate = view.findViewById(R.id.tvDialogEndDate);
-        CheckBox cbDialogCompleted = view.findViewById(R.id.cbDialogCompleted);
-        TextView tvErrorProjectName = view.findViewById(R.id.tvErrorProjectName);
-        TextView tvErrorDates = view.findViewById(R.id.tvErrorDates);
+        // Find views
+        TextView txtId = view.findViewById(R.id.txtId);
+        EditText edtName = view.findViewById(R.id.edtName);
+        TextView txtStart = view.findViewById(R.id.txtStart);
+        TextView txtEnd = view.findViewById(R.id.txtEnd);
+        CheckBox cbDone = view.findViewById(R.id.cbDone);
+        TextView txtErrName = view.findViewById(R.id.txtErrName);
+        TextView txtErrDate = view.findViewById(R.id.txtErrDate);
 
-        // Generate ID for new project or use existing ID
-        // Tính toán ID tiếp theo nhưng chưa gán vào lastProjectId
-        final int nextId = project == null ? lastProjectId + 1 : -1;
-        final String projectId;
+        // Generate ID for new project
+        final int nextId = p == null ? lastId + 1 : -1;
+        final String pid;
 
-        if (project == null) {
-            int id = nextId > 99 ? 0 : nextId; // Reset to 10 if exceeds 99
-            projectId = String.format("%02d", id);
+        if (p == null) {
+            int id = nextId > 99 ? 0 : nextId;
+            pid = String.format("%02d", id);
         } else {
-            projectId = project.getId();
+            pid = p.getId();
         }
-        tvDialogProjectId.setText(projectId);
+        txtId.setText(pid);
 
-        // Set current date for new project or use existing dates
-        Calendar calendar = Calendar.getInstance();
-        calendar.set(2025, 0, 1); // January 1, 2025
-        String startDate = sdf.format(calendar.getTime());
+        // Set default dates for new project
+        Calendar cal = Calendar.getInstance();
+        cal.set(2025, 0, 1); // January 1, 2025
+        String startDate = sdf.format(cal.getTime());
 
-        calendar.set(2025, 11, 31); // December 31, 2025
-        String endDate = sdf.format(calendar.getTime());
+        cal.set(2025, 11, 31); // December 31, 2025
+        String endDate = sdf.format(cal.getTime());
 
-        if (project != null) {
-            edtDialogProjectName.setText(project.getName());
-            tvDialogStartDate.setText(sdf.format(project.getStartDate()));
-            tvDialogEndDate.setText(sdf.format(project.getEndDate()));
-            cbDialogCompleted.setChecked(project.isCompleted());
+        if (p != null) {
+            edtName.setText(p.getName());
+            txtStart.setText(sdf.format(p.getStart()));
+            txtEnd.setText(sdf.format(p.getEnd()));
+            cbDone.setChecked(p.isDone());
         } else {
-            tvDialogStartDate.setText(startDate);
-            tvDialogEndDate.setText(endDate);
+            txtStart.setText(startDate);
+            txtEnd.setText(endDate);
         }
 
         // Setup date pickers
-        tvDialogStartDate.setOnClickListener(v -> showDatePickerDialog(tvDialogStartDate));
-        tvDialogEndDate.setOnClickListener(v -> showDatePickerDialog(tvDialogEndDate));
+        txtStart.setOnClickListener(v -> showDatePicker(txtStart));
+        txtEnd.setOnClickListener(v -> showDatePicker(txtEnd));
 
         // Create dialog buttons
-        builder.setPositiveButton(project == null ? "Thêm" : "Cập nhật", null);
+        builder.setPositiveButton(p == null ? "Thêm" : "Cập nhật", null);
 
-        if (project != null) {
+        if (p != null) {
             builder.setNeutralButton("Xóa", (dialog, which) -> {
-                confirmDelete(position);
+                confirmDel(pos);
             });
         }
 
-        // Khi nhấn hủy không làm gì (ID không thay đổi)
         builder.setNegativeButton("Hủy", (dialog, which) -> dialog.dismiss());
 
         AlertDialog dialog = builder.create();
         dialog.show();
 
-        // Override the positive button click to prevent dialog from closing if validation fails
+        // Override positive button to validate before closing
         dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
-            boolean isValid = true;
+            boolean valid = true;
 
-            // Validate project name
-            String name = edtDialogProjectName.getText().toString().trim();
+            // Validate name
+            String name = edtName.getText().toString().trim();
             if (name.isEmpty()) {
-                tvErrorProjectName.setVisibility(View.VISIBLE);
-                isValid = false;
+                txtErrName.setVisibility(View.VISIBLE);
+                valid = false;
             } else {
-                tvErrorProjectName.setVisibility(View.GONE);
+                txtErrName.setVisibility(View.GONE);
             }
 
             // Validate dates
             try {
-                Date startDateObj = sdf.parse(tvDialogStartDate.getText().toString());
-                Date endDateObj = sdf.parse(tvDialogEndDate.getText().toString());
+                Date start = sdf.parse(txtStart.getText().toString());
+                Date end = sdf.parse(txtEnd.getText().toString());
 
-                if (startDateObj.after(endDateObj)) {
-                    tvErrorDates.setVisibility(View.VISIBLE);
-                    isValid = false;
+                if (start.after(end)) {
+                    txtErrDate.setVisibility(View.VISIBLE);
+                    valid = false;
                 } else {
-                    tvErrorDates.setVisibility(View.GONE);
+                    txtErrDate.setVisibility(View.GONE);
                 }
 
-                if (isValid) {
-                    boolean completed = cbDialogCompleted.isChecked();
+                if (valid) {
+                    boolean done = cbDone.isChecked();
 
-                    // Chỉ tăng ID khi thêm mới thành công
-                    if (project == null) {
-                        // Cập nhật lastProjectId khi thêm mới thành công
-                        lastProjectId = nextId > 99 ? 10 : nextId;
+                    // Only increment ID when adding new project
+                    if (p == null) {
+                        lastId = nextId > 99 ? 10 : nextId;
                     }
 
-                    Project newOrUpdatedProject = new Project(projectId, name, startDateObj, endDateObj, completed);
+                    Project newP = new Project(pid, name, start, end, done);
 
-                    if (project == null) {
+                    if (p == null) {
                         // Add new project
-                        adapter.add(newOrUpdatedProject);
+                        adapter.add(newP);
                     } else {
                         // Update existing project
-                        adapter.update(position, newOrUpdatedProject);
+                        adapter.update(pos, newP);
                     }
 
                     dialog.dismiss();
                 }
 
             } catch (ParseException e) {
-                tvErrorDates.setText("Lỗi định dạng ngày");
-                tvErrorDates.setVisibility(View.VISIBLE);
-                isValid = false;
+                txtErrDate.setText("Lỗi định dạng ngày");
+                txtErrDate.setVisibility(View.VISIBLE);
+                valid = false;
             }
         });
     }
 
-    private void confirmDelete(int position) {
+    private void confirmDel(int pos) {
         new AlertDialog.Builder(this)
                 .setTitle("Xác nhận xóa")
                 .setMessage("Bạn có chắc chắn muốn xóa dự án này?")
                 .setPositiveButton("Có", (dialog, which) -> {
-                    adapter.remove(position);
+                    adapter.remove(pos);
                 })
                 .setNegativeButton("Không", null)
                 .show();
     }
 
     @Override
-    public void onItemClick(int position) {
-        Project selected = adapter.getItem(position);
-        showProjectDialog(selected, position);
+    public void onItemClick(int pos) {
+        Project p = adapter.getItem(pos);
+        showDialog(p, pos);
     }
 
-    private List<Project> generateSampleProjects() {
-        List<Project> sampleProjects = new ArrayList<>();
+    private List<Project> getSampleData() {
+        List<Project> samples = new ArrayList<>();
 
         try {
-            // Sample project 1
+            // Sample 1
             Calendar cal1 = Calendar.getInstance();
             cal1.set(2025, 1, 15); // February 15, 2025
             Date start1 = cal1.getTime();
@@ -323,12 +306,12 @@ public class MainActivity2 extends AppCompatActivity implements ProjectAdapter.P
             cal1.set(2025, 3, 30); // April 30, 2025
             Date end1 = cal1.getTime();
 
-            lastProjectId = 1; // Set starting ID
-            Project project1 = new Project(String.format("%02d", lastProjectId), "Nấu cơm cho vợ", start1, end1, true);
-            sampleProjects.add(project1);
+            lastId = 1; // Set starting ID
+            Project p1 = new Project(String.format("%02d", lastId), "Nấu cơm cho vợ", start1, end1, true);
+            samples.add(p1);
 
-            // Sample project 2
-            lastProjectId++;
+            // Sample 2
+            lastId++;
             Calendar cal2 = Calendar.getInstance();
             cal2.set(2025, 5, 1); // June 1, 2025
             Date start2 = cal2.getTime();
@@ -336,11 +319,11 @@ public class MainActivity2 extends AppCompatActivity implements ProjectAdapter.P
             cal2.set(2025, 8, 30); // September 30, 2025
             Date end2 = cal2.getTime();
 
-            Project project2 = new Project(String.format("%02d", lastProjectId), "Dự án website", start2, end2, false);
-            sampleProjects.add(project2);
+            Project p2 = new Project(String.format("%02d", lastId), "Dự án website", start2, end2, false);
+            samples.add(p2);
 
-            // Sample project 3
-            lastProjectId++;
+            // Sample 3
+            lastId++;
             Calendar cal3 = Calendar.getInstance();
             cal3.set(2025, 3, 15); // April 15, 2025
             Date start3 = cal3.getTime();
@@ -348,13 +331,13 @@ public class MainActivity2 extends AppCompatActivity implements ProjectAdapter.P
             cal3.set(2025, 11, 31); // December 31, 2025
             Date end3 = cal3.getTime();
 
-            Project project3 = new Project(String.format("%02d", lastProjectId), "Ứng dụng di động", start3, end3, false);
-            sampleProjects.add(project3);
+            Project p3 = new Project(String.format("%02d", lastId), "Ứng dụng di động", start3, end3, false);
+            samples.add(p3);
 
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-        return sampleProjects;
+        return samples;
     }
 }

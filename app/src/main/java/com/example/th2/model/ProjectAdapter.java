@@ -6,13 +6,11 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.th2.R;
-import com.example.th2.model.Project;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -22,33 +20,33 @@ import java.util.Date;
 
 public class ProjectAdapter extends RecyclerView.Adapter<ProjectAdapter.ProjectViewHolder> {
     private Context context;
-    private List<Project> projects;
-    private List<Project> originalProjects;
-    private ProjectItemListener itemListener;
+    private List<Project> list;
+    private List<Project> origList;
+    private ItemListener listener;
     private SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
 
     public ProjectAdapter(Context context) {
         this.context = context;
-        this.projects = new ArrayList<>();
-        this.originalProjects = new ArrayList<>();
+        this.list = new ArrayList<>();
+        this.origList = new ArrayList<>();
     }
 
-    public void setItemListener(ProjectItemListener itemListener) {
-        this.itemListener = itemListener;
+    public void setListener(ItemListener listener) {
+        this.listener = listener;
     }
 
-    public void setProjects(List<Project> projects) {
-        this.projects = projects;
-        this.originalProjects = new ArrayList<>(projects);
+    public void setList(List<Project> list) {
+        this.list = list;
+        this.origList = new ArrayList<>(list);
         notifyDataSetChanged();
     }
 
-    public List<Project> getProjects() {
-        return projects;
+    public List<Project> getList() {
+        return list;
     }
 
-    public Project getItem(int position) {
-        return projects.get(position);
+    public Project getItem(int pos) {
+        return list.get(pos);
     }
 
     @NonNull
@@ -59,98 +57,96 @@ public class ProjectAdapter extends RecyclerView.Adapter<ProjectAdapter.ProjectV
     }
 
     @Override
-    public void onBindViewHolder(@NonNull ProjectViewHolder holder, int position) {
-        Project project = projects.get(position);
+    public void onBindViewHolder(@NonNull ProjectViewHolder holder, int pos) {
+        Project p = list.get(pos);
 
-        holder.tvProjectName.setText(project.getName());
-        holder.tvItemDateStart.setText("từ " + sdf.format(project.getStartDate()));
-        holder.tvItemDateEnd.setText("đến " + sdf.format(project.getEndDate()));
-        holder.cbCompleted.setChecked(project.isCompleted());
+        holder.txtName.setText(p.getName());
+        holder.txtStart.setText("từ " + sdf.format(p.getStart()));
+        holder.txtEnd.setText("đến " + sdf.format(p.getEnd()));
+        holder.cbDone.setChecked(p.isDone());
 
         holder.itemView.setOnClickListener(v -> {
-            if (itemListener != null) {
-                itemListener.onItemClick(holder.getAdapterPosition());
+            if (listener != null) {
+                listener.onItemClick(holder.getAdapterPosition());
             }
         });
     }
 
     @Override
     public int getItemCount() {
-        return projects.size();
+        return list.size();
     }
 
-    public void add(Project project) {
-        projects.add(project);
-        originalProjects.add(project);
+    public void add(Project p) {
+        list.add(p);
+        origList.add(p);
         notifyDataSetChanged();
     }
 
-    public void update(int position, Project project) {
-        projects.set(position, project);
-        // Also update in original list
-        for (int i = 0; i < originalProjects.size(); i++) {
-            if (originalProjects.get(i).getId().equals(project.getId())) {
-                originalProjects.set(i, project);
+    public void update(int pos, Project p) {
+        list.set(pos, p);
+        for (int i = 0; i < origList.size(); i++) {
+            if (origList.get(i).getId().equals(p.getId())) {
+                origList.set(i, p);
                 break;
             }
         }
         notifyDataSetChanged();
     }
 
-    public void remove(int position) {
-        Project removed = projects.remove(position);
-        // Also remove from original list
-        for (int i = 0; i < originalProjects.size(); i++) {
-            if (originalProjects.get(i).getId().equals(removed.getId())) {
-                originalProjects.remove(i);
+    public void remove(int pos) {
+        Project removed = list.remove(pos);
+        for (int i = 0; i < origList.size(); i++) {
+            if (origList.get(i).getId().equals(removed.getId())) {
+                origList.remove(i);
                 break;
             }
         }
         notifyDataSetChanged();
     }
 
-    public void filterProjects(Date startDate, Date endDate, Boolean completionStatus) {
-        projects.clear();
+    public void filter(Date start, Date end, Boolean done) {
+        list.clear();
 
-        for (Project project : originalProjects) {
-            boolean matches = true;
+        for (Project p : origList) {
+            boolean match = true;
 
-            // Filter by date range - check if project's start date is within the range
-            if (startDate != null && endDate != null) {
-                if (project.getStartDate().before(startDate) || project.getStartDate().after(endDate)) {
-                    matches = false;
+            // Filter by date range
+            if (start != null && end != null) {
+                if (p.getStart().before(start) || p.getStart().after(end)) {
+                    match = false;
                 }
             }
 
-            // Filter by completion status if specified
-            if (completionStatus != null) {
-                if (project.isCompleted() != completionStatus) {
-                    matches = false;
+            // Filter by completion status
+            if (done != null) {
+                if (p.isDone() != done) {
+                    match = false;
                 }
             }
 
-            if (matches) {
-                projects.add(project);
+            if (match) {
+                list.add(p);
             }
         }
 
         notifyDataSetChanged();
     }
 
-    public interface ProjectItemListener {
-        void onItemClick(int position);
+    public interface ItemListener {
+        void onItemClick(int pos);
     }
 
     public class ProjectViewHolder extends RecyclerView.ViewHolder {
-        private TextView tvProjectName, tvItemDateStart, tvItemDateEnd;
-        private CheckBox cbCompleted;
+        private TextView txtName, txtStart, txtEnd;
+        private CheckBox cbDone;
 
-        public ProjectViewHolder(@NonNull View itemView) {
-            super(itemView);
-            tvProjectName = itemView.findViewById(R.id.tvItemProjectName);
-            tvItemDateStart = itemView.findViewById(R.id.tvItemDateStart);
-            tvItemDateEnd = itemView.findViewById(R.id.tvItemDateEnd);
-            cbCompleted = itemView.findViewById(R.id.cbItemCompleted);
+        public ProjectViewHolder(@NonNull View view) {
+            super(view);
+            txtName = view.findViewById(R.id.txtName);
+            txtStart = view.findViewById(R.id.txtStart);
+            txtEnd = view.findViewById(R.id.txtEnd);
+            cbDone = view.findViewById(R.id.cbDone);
         }
     }
 }

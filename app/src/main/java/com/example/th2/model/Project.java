@@ -1,24 +1,23 @@
 package com.example.th2.model;
 
-import java.io.Serializable;
 import java.util.Date;
 
-public class Project implements Serializable {
-    private String id; // Auto-generated 2-digit ID
+public class Project {
+    private String id;
     private String name;
-    private Date startDate;
-    private Date endDate;
-    private boolean completed;
+    private Date start;
+    private Date end;
+    private boolean done;
 
     public Project() {
     }
 
-    public Project(String id, String name, Date startDate, Date endDate, boolean completed) {
+    public Project(String id, String name, Date start, Date end, boolean done) {
         this.id = id;
         this.name = name;
-        this.startDate = startDate;
-        this.endDate = endDate;
-        this.completed = completed;
+        this.start = start;
+        this.end = end;
+        this.done = done;
     }
 
     public String getId() {
@@ -37,27 +36,27 @@ public class Project implements Serializable {
         this.name = name;
     }
 
-    public Date getStartDate() {
-        return startDate;
+    public Date getStart() {
+        return start;
     }
 
-    public void setStartDate(Date startDate) {
-        this.startDate = startDate;
+    public void setStart(Date start) {
+        this.start = start;
     }
 
-    public Date getEndDate() {
-        return endDate;
+    public Date getEnd() {
+        return end;
     }
 
-    public void setEndDate(Date endDate) {
-        this.endDate = endDate;
+    public void setEnd(Date end) {
+        this.end = end;
     }
 
-    public boolean isCompleted() {
-        return completed;
+    public boolean isDone() {
+        return done;
     }
 
-    public void setCompleted(boolean completed) {
-        this.completed = completed;
+    public void setDone(boolean done) {
+        this.done = done;
     }
 }

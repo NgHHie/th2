@@ -15,7 +15,7 @@
         android:gravity="center_vertical">
 
         <TextView
-            android:id="@+id/tvItemProjectName"
+            android:id="@+id/txtName"
             android:layout_width="140dp"
             android:layout_height="wrap_content"
             android:text="Nấu cơm cho vợ"
@@ -28,18 +28,17 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:orientation="vertical"
-            >
+            android:orientation="vertical">
 
             <TextView
-                android:id="@+id/tvItemDateStart"
+                android:id="@+id/txtStart"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="từ 1/2/2022"
                 android:textSize="14sp" />
 
             <TextView
-                android:id="@+id/tvItemDateEnd"
+                android:id="@+id/txtEnd"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="đến 1/4/2022"
@@ -48,7 +47,7 @@
         </LinearLayout>
 
         <CheckBox
-            android:id="@+id/cbItemCompleted"
+            android:id="@+id/cbDone"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
